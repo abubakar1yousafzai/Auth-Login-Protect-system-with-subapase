@@ -29,12 +29,12 @@ This project demonstrates a real authentication flow between three parties: the 
 
 ## How to Install & Run
 
-**Requirements:** Python 3.10+
+**Requirements:** Python 3.12
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-   cd YOUR_REPO_NAME
+   git clone https://github.com/abubakar1yousafzai/Auth-Login-Protect-system-with-subapase.git
+   cd Auth-Login-Protect-system-with-subapase
    ```
 
 2. Create a virtual environment and install dependencies:
