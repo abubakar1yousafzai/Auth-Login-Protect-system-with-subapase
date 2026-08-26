@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, Response
 import uvicorn
 from pydantic import BaseModel
 from supabase import create_client, Client
@@ -48,7 +48,7 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid login credentials")
 
 
-def get_token(authorization: str = Header(None)):
+def get_current_user(authorization: str = Header(None)):
     if authorization is None:
         raise HTTPException(status_code=401, detail="Access token required")
     
@@ -56,26 +56,39 @@ def get_token(authorization: str = Header(None)):
     if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1].strip():
         raise HTTPException(status_code=401, detail="Access token required")
     
-    return parts[1].strip()
-
-
-@app.get("/public/info")
-async def public_info():
-    return {"message": "Welcome stranger! This info is public."}
-
-
-@app.get("/protected/profile")
-async def protected_profile(token: str = Depends(get_token)):
+    token = parts[1].strip()
+    
     try:
         response = supabase.auth.get_user(token)
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-
+    
     if response is None or response.user is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    return {"user": response.user, "token": token}
 
-    user = response.user
+
+
+@app.get("/public/info")
+def public_info():
+    return {"message": "Welcome stranger! This info is public."}
+
+
+@app.get("/protected/profile")
+async def protected_profile(current= Depends(get_current_user)):
+    user = current["user"]
     return {"id": user.id, "email": user.email, "created_at": user.created_at}
+
+@app.post("/auth/logout", status_code=204)
+async def logout(current= Depends(get_current_user)):
+    supabase.auth.sign_out()
+    return Response(status_code=204)
+
+@app.get("/protected/dashboard")
+async def protected_dashboard(current= Depends(get_current_user)):
+    user = current["user"]
+    return {"message": f"welcome to your dashboard, {user.email}!"}
 
 
 if __name__ == "__main__":
