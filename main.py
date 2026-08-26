@@ -64,7 +64,6 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     return {"user": response.user, "token": token}
 
 
-
 @app.get("/public/info")
 def public_info():
     return {"message": "Welcome stranger! This info is public."}
